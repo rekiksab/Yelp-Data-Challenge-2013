@@ -1,0 +1,13 @@
+DATA
+
+NB_USERS = 45981;
+NB_BUSINESS = 11537;
+NB_REVIEWS = 229907
+	
+*********************************
+
+MATRICE
+
+matrice density : 4.3339011425096223E-4
+average number of reviews : 5.0
+
