@@ -1,5 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import org.json.simple.JSONObject;
@@ -25,8 +27,37 @@ public class JsonParser {
 		ratings = new long [NB_USERS][NB_BUSINESS];
 		density = 0;
 	}
-
-	public void loadData(String fileName)
+	
+	public void saveMatrice(String fileName) throws FileNotFoundException
+	{
+		PrintWriter out = new PrintWriter(fileName);
+		for (int i = 0; i < ratings.length ; i++)
+		{
+			for (int j = 0; j < ratings[0].length; j++)
+			{
+				out.print(ratings[i][j]);
+				out.print(";");
+			}
+			out.println();
+		}
+		out.close();
+	}
+	
+	public void loadMatrice(String fileName) throws FileNotFoundException
+	{
+		Scanner in = new Scanner(new File(fileName));
+		for (int  i = 0; i < ratings.length ; i++)
+		{
+			String line = in.nextLine();
+			String[] rate = line.split(";");
+			for (int j =0 ; j < ratings.length; j++)
+			{
+				ratings[i][j] = Long.parseLong(rate[j]);
+			}
+		}
+	}
+	
+	public void buildMatrice(String fileName)
 	{
 		int countUser = 0;
 		int countBusiness = 0;
@@ -72,21 +103,26 @@ public class JsonParser {
 			
 			this.averageReviews = nbNonZero / NB_USERS;
 			this.density = (double)nbNonZero / (NB_USERS * NB_BUSINESS);
-
 		}
 		catch (ParseException e) {
 			e.printStackTrace();
 		}
-
+		
 		catch (FileNotFoundException   e)
 		{
 			e.printStackTrace();
 		}
 	} 
-	public static void main(String[] argv)
+	
+
+	
+	
+	public static void main(String[] argv) throws FileNotFoundException
 	{
 		JsonParser myParser = new JsonParser();
-		myParser.loadData("/Users/sabrinerekik/Yelp/yelp_challenge/yelp_phoenix_academic_dataset/yelp_academic_dataset_review.json");
-
+		myParser.buildMatrice("/Users/sabrinerekik/Yelp/yelp_challenge/yelp_phoenix_academic_dataset/yelp_academic_dataset_review.json");
+		myParser.saveMatrice("matrice.txt");
+		System.out.println(myParser.density);
+		System.out.println(myParser.averageReviews);
 	}
 }
