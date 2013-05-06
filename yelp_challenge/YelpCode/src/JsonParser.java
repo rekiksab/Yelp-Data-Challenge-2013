@@ -12,7 +12,8 @@ public class JsonParser {
 
 	HashMap<String, Integer> userMap;
 	HashMap<String, Integer> businessMap;
-	long [][] ratings;
+	long [][] ratings; //user to item
+	long[][] itemToItem;
 	double density;
 	double averageReviews;
 
@@ -25,15 +26,16 @@ public class JsonParser {
 		userMap = new HashMap<String,Integer>();
 		businessMap = new HashMap<String,Integer>();
 		ratings = new long [NB_USERS][NB_BUSINESS];
+		itemToItem = new long[NB_BUSINESS][NB_BUSINESS];
 		density = 0;
 	}
 	
-	public void saveMatrice(String fileName) throws FileNotFoundException
+	public void saveMatrice(String fileName, long[][] matrice) throws FileNotFoundException
 	{
 		PrintWriter out = new PrintWriter(fileName);
-		for (int i = 0; i < ratings.length ; i++)
+		for (int i = 0; i < matrice.length ; i++)
 		{
-			for (int j = 0; j < ratings[0].length; j++)
+			for (int j = 0; j < matrice[0].length; j++)
 			{
 				out.print(ratings[i][j]);
 				out.print(";");
@@ -43,21 +45,21 @@ public class JsonParser {
 		out.close();
 	}
 	
-	public void loadMatrice(String fileName) throws FileNotFoundException
+	public void loadMatrice(String fileName, long[][] matrice) throws FileNotFoundException
 	{
 		Scanner in = new Scanner(new File(fileName));
-		for (int  i = 0; i < ratings.length ; i++)
+		for (int  i = 0; i < matrice.length ; i++)
 		{
 			String line = in.nextLine();
 			String[] rate = line.split(";");
-			for (int j =0 ; j < ratings.length; j++)
+			for (int j =0 ; j < matrice.length; j++)
 			{
-				ratings[i][j] = Long.parseLong(rate[j]);
+				matrice[i][j] = Long.parseLong(rate[j]);
 			}
 		}
 	}
 	
-	public void buildMatrice(String fileName)
+	public void buildRatingMatrice(String fileName)
 	{
 		int countUser = 0;
 		int countBusiness = 0;
@@ -91,10 +93,12 @@ public class JsonParser {
 				}
 
 				// store the rating
-				ratings[userMap.get(user_id)][businessMap.get(business_id)] = stars;
+				//TODO : 3 as a threshold constant
+				if (stars > 3)
+					ratings[userMap.get(user_id)][businessMap.get(business_id)] = 1;
 			}
 
-			// density of the matrix
+			// density of the matrix and average Reviews
 			int nbNonZero = 0;
 			for (int i = 0 ; i < NB_USERS; i++)
 				for (int j = 0; j < NB_BUSINESS ; j++)
@@ -114,15 +118,47 @@ public class JsonParser {
 		}
 	} 
 	
+	void buildItemtoItemMatrice()
+	{
+		for (int item1 = 0 ; item1 < NB_BUSINESS; item1++)
+		{
+			for (int item2 = item1+1 ; item2 < NB_BUSINESS; item2++)
+			{
+				long sim = getSimilarity(item1, item2);
+				itemToItem[item1][item2] = sim;
+				itemToItem[item2][item1] = sim;
+			}
+		}
+	}
+	
+	// item 1 and 2 are the index of the item in the matrice
+	private long getSimilarity(int item1 , int item2)
+	{
+		long sim = scalarProduct(item1, item2) / (scalarProduct(item1, item1) * scalarProduct(item2,item2));
+		System.out.println(sim);
+		return sim;		
+	}
+	
+	private long scalarProduct(int item1, int item2)
+	{
+		long product = 0;
+		for (int i = 0; i < ratings.length; i++)
+		{
+			product += ratings[i][item1] * ratings[i][item2];
+		}
+		return product;
+	}
+	
 
-	
-	
 	public static void main(String[] argv) throws FileNotFoundException
 	{
+		System.out.println("hello");
 		JsonParser myParser = new JsonParser();
-		myParser.buildMatrice("/Users/sabrinerekik/Yelp/yelp_challenge/yelp_phoenix_academic_dataset/yelp_academic_dataset_review.json");
-		myParser.saveMatrice("matrice.txt");
-		System.out.println(myParser.density);
-		System.out.println(myParser.averageReviews);
+		//myParser.buildRatingMatrice("/Users/sabrinerekik/Yelp/yelp_challenge/yelp_phoenix_academic_dataset/yelp_academic_dataset_review.json");
+		System.out.println("Loading Ratings Matrice");
+		myParser.loadMatrice("matrice.txt", myParser.ratings);
+		System.out.println("creating Items to Items Matrice");
+		myParser.saveMatrice("itemToItem.txt", myParser.itemToItem);
+		System.out.println("end");
 	}
 }
