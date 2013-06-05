@@ -4,8 +4,8 @@ INDEX VERSION 1.126+/Users/sabrinerekik/Yelp/yelp_challenge/.metadata/.plugins/o
 3954040986.index
 3321539481.index
 3004609673.index
-1478606119.index
 2326659272.index
+1478606119.index
 2816463748.index
 1152842145.index
 538219066.index
